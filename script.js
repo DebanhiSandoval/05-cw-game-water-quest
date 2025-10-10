@@ -2,7 +2,9 @@
 const GOAL_CANS = 25;        // Total items needed to collect
 let currentCans = 0;         // Current number of items collected
 let gameActive = false;      // Tracks if game is currently running
-let spawnInterval;          // Holds the interval for spawning items
+let spawnInterval;           // Holds the interval for spawning items
+let timerInterval;           // Holds the interval for the timer
+let timeLeft = 30;           // Initial time left in seconds
 
 // Creates the 3x3 game grid where items will appear
 function createGrid() {
@@ -40,15 +42,88 @@ function spawnWaterCan() {
 // Initializes and starts a new game
 function startGame() {
   if (gameActive) return; // Prevent starting a new game if one is already active
-  gameActive = true;
-  createGrid(); // Set up the game grid
-  spawnInterval = setInterval(spawnWaterCan, 1000); // Spawn water cans every second
+  hideRestartButton();
+  hideStartButton();
+  let countdown = 3;
+  document.getElementById('achievements').textContent = countdown;
+  document.getElementById('current-cans').textContent = 0;
+  document.getElementById('timer').textContent = 30;
+  createGrid();
+  let countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown > 0) {
+      document.getElementById('achievements').textContent = countdown;
+    } else if (countdown === 0) {
+      document.getElementById('achievements').textContent = 'Go!';
+    } else {
+      clearInterval(countdownInterval);
+      document.getElementById('achievements').textContent = '';
+      // Start the game after countdown
+      gameActive = true;
+      currentCans = 0;
+      timeLeft = 30;
+      spawnInterval = setInterval(spawnWaterCan, 1000);
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+  }, 1000);
+}
+
+// Updates the timer every second
+function updateTimer() {
+  if (!gameActive) return;
+  timeLeft--;
+  document.getElementById('timer').textContent = timeLeft;
+  if (timeLeft <= 0) {
+    endGame();
+    if (currentCans >= 20) {
+      document.getElementById('achievements').textContent = 'You win!';
+    } else {
+      document.getElementById('achievements').textContent = 'Time is up!';
+    }
+  }
 }
 
 function endGame() {
   gameActive = false; // Mark the game as inactive
   clearInterval(spawnInterval); // Stop spawning water cans
+  clearInterval(timerInterval); // Stop timer
+  showRestartButton();
+  hideStartButton();
+}
+
+function showRestartButton() {
+  document.getElementById('restart-game').style.display = 'block';
+}
+
+function hideRestartButton() {
+  document.getElementById('restart-game').style.display = 'none';
+}
+
+function showStartButton() {
+  document.getElementById('start-game').style.display = 'block';
+}
+
+function hideStartButton() {
+  document.getElementById('start-game').style.display = 'none';
 }
 
 // Set up click handler for the start button
 document.getElementById('start-game').addEventListener('click', startGame);
+
+// Handle clicks on water cans to update score
+document.querySelector('.game-grid').addEventListener('click', function(e) {
+  if (!gameActive) return;
+  // Check if the clicked element is a water can
+  if (e.target.classList.contains('water-can')) {
+    currentCans++;
+    document.getElementById('current-cans').textContent = currentCans;
+    // Remove the can after click
+    e.target.parentElement.innerHTML = '';
+    // Game continues until timer runs out
+  }
+});
+
+document.getElementById('restart-game').addEventListener('click', function() {
+  showStartButton();
+  startGame();
+});
