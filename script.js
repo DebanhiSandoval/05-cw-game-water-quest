@@ -39,33 +39,28 @@ function spawnWaterCan() {
   `;
 }
 
+function getSpawnSpeed() {
+  const difficulty = document.getElementById('difficulty').value;
+  if (difficulty === 'easy') return 1300;
+  if (difficulty === 'hard') return 600;
+  return 1000; // medium
+}
+
 // Initializes and starts a new game
 function startGame() {
   if (gameActive) return; // Prevent starting a new game if one is already active
   hideRestartButton();
   hideStartButton();
-  let countdown = 3;
-  document.getElementById('achievements').textContent = countdown;
+  // Remove countdown logic, start game immediately
   document.getElementById('current-cans').textContent = 0;
   document.getElementById('timer').textContent = 30;
+  document.getElementById('achievements').textContent = '';
   createGrid();
-  let countdownInterval = setInterval(() => {
-    countdown--;
-    if (countdown > 0) {
-      document.getElementById('achievements').textContent = countdown;
-    } else if (countdown === 0) {
-      document.getElementById('achievements').textContent = 'Go!';
-    } else {
-      clearInterval(countdownInterval);
-      document.getElementById('achievements').textContent = '';
-      // Start the game after countdown
-      gameActive = true;
-      currentCans = 0;
-      timeLeft = 30;
-      spawnInterval = setInterval(spawnWaterCan, 1000);
-      timerInterval = setInterval(updateTimer, 1000);
-    }
-  }, 1000);
+  gameActive = true;
+  currentCans = 0;
+  timeLeft = 30;
+  spawnInterval = setInterval(spawnWaterCan, getSpawnSpeed());
+  timerInterval = setInterval(updateTimer, 1000);
 }
 
 // Updates the timer every second
